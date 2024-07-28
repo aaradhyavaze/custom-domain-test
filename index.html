@@ -89,6 +89,12 @@
             const args = cmd.split(' ');
             const command = args[0].toLowerCase();
 
+            // Check for potential code injection
+            if (cmd.includes('<script') || cmd.includes('javascript:')) {
+                printToTerminal("Nice try! But I won't execute that. 😉");
+                return;
+            }
+
             switch(command) {
                 case 'ls':
                     const items = Object.keys(currentDir).map(item => {
@@ -101,7 +107,10 @@
                     printToTerminal(items.join('  '));
                     break;
                 case 'cd':
-                    if (args[1] === '..') {
+                    if (args.length === 1 || args[1] === '/') {
+                        currentDir = fileSystem['/'];
+                        currentPath = '/';
+                    } else if (args[1] === '..') {
                         if (currentPath !== '/') {
                             currentPath = currentPath.split('/').slice(0, -1).join('/') || '/';
                             currentDir = currentPath === '/' ? fileSystem['/'] : fileSystem['/'][currentPath.slice(1)];
@@ -126,8 +135,11 @@
                 case 'pwd':
                     printToTerminal(currentPath);
                     break;
+                case 'clear':
+                    terminal.innerHTML = '';
+                    break;
                 case 'help':
-                    printToTerminal('Available commands: ls, cd, cat, echo, pwd, help');
+                    printToTerminal('Available commands: ls, cd, cat, echo, pwd, clear, help');
                     break;
                 default:
                     printToTerminal(`${command}: command not found`);
