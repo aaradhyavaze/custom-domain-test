@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>human@interwebs</title>
+    <style>
+        body {
+            background-color: #2b2b2b;
+            color: #a9b7c6;
+            font-family: monospace;
+            padding: 20px;
+            font-size: 28px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid #a9b7c6;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        #input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+        #prompt {
+            white-space: nowrap;
+        }
+        #input {
+            flex-grow: 1;
+            background-color: #2b2b2b;
+            color: #a9b7c6;
+            border: none;
+            outline: none;
+            font-family: monospace;
+            font-size: 28px;
+            padding: 0 10px;
+        }
+        .directory {
+            color: #729fcf;
+            font-weight: bold;
+        }
+        .file {
+            color: #8ae234;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+    <div id="input-container">
+        <span id="prompt"></span>
+        <input type="text" id="input" autofocus>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const input = document.getElementById('input');
+        const prompt = document.getElementById('prompt');
+
+        const fileSystem = {
+            '/': {
+                'README': 'Welcome to my little funny spot on the internet!',
+                'projects': {
+                    'updates.txt': 'coming soon!',
+                },
+                'contact.txt': 'email: aaradhya.vaze@ist.ac.at'
+            }
+        };
+
+        let currentDir = fileSystem['/'];
+        let currentPath = '/';
+
+        function updatePrompt() {
+            prompt.textContent = `${currentPath} $ `;
+        }
+
+        function printToTerminal(text) {
+            terminal.innerHTML += text + '<br>';
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function handleCommand(cmd) {
+            const args = cmd.split(' ');
+            const command = args[0].toLowerCase();
+
+            switch(command) {
+                case 'ls':
+                    const items = Object.keys(currentDir).map(item => {
+                        if (typeof currentDir[item] === 'object') {
+                            return `<span class="directory">${item}/</span>`;
+                        } else {
+                            return `<span class="file">${item}</span>`;
+                        }
+                    });
+                    printToTerminal(items.join('  '));
+                    break;
+                case 'cd':
+                    if (args[1] === '..') {
+                        if (currentPath !== '/') {
+                            currentPath = currentPath.split('/').slice(0, -1).join('/') || '/';
+                            currentDir = currentPath === '/' ? fileSystem['/'] : fileSystem['/'][currentPath.slice(1)];
+                        }
+                    } else if (currentDir[args[1]] && typeof currentDir[args[1]] === 'object') {
+                        currentPath += currentPath === '/' ? args[1] : '/' + args[1];
+                        currentDir = currentDir[args[1]];
+                    } else {
+                        printToTerminal(`cd: ${args[1]}: No such directory`);
+                    }
+                    break;
+                case 'cat':
+                    if (typeof currentDir[args[1]] === 'string') {
+                        printToTerminal(currentDir[args[1]]);
+                    } else {
+                        printToTerminal(`cat: ${args[1]}: No such file`);
+                    }
+                    break;
+                case 'echo':
+                    printToTerminal(args.slice(1).join(' '));
+                    break;
+                case 'pwd':
+                    printToTerminal(currentPath);
+                    break;
+                case 'help':
+                    printToTerminal('Available commands: ls, cd, cat, echo, pwd, help');
+                    break;
+                default:
+                    printToTerminal(`${command}: command not found`);
+            }
+            updatePrompt();
+        }
+
+        function autocomplete(input) {
+            const args = input.split(' ');
+            const lastArg = args[args.length - 1];
+            const matches = Object.keys(currentDir).filter(item => item.startsWith(lastArg));
+
+            if (matches.length === 1) {
+                args[args.length - 1] = matches[0];
+                return args.join(' ');
+            } else if (matches.length > 1) {
+                printToTerminal(matches.join('  '));
+                return input;
+            }
+            return input;
+        }
+
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                this.value = autocomplete(this.value);
+            }
+        });
+
+        input.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                const cmd = this.value;
+                printToTerminal(`${prompt.textContent}${cmd}`);
+                handleCommand(cmd);
+                this.value = '';
+            }
+        });
+
+        updatePrompt();
+        printToTerminal('Hello! Type "help" for available commands.');
+    </script>
+</body>
+</html>
