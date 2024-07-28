@@ -65,7 +65,7 @@
 
         const fileSystem = {
             '/': {
-                'README': 'Welcome to my little funny spot on the internet!',
+                'README': 'Welcome to my little funny spot on the internet',
                 'projects': {
                     'updates.txt': 'coming soon!',
                 },
@@ -88,12 +88,6 @@
         function handleCommand(cmd) {
             const args = cmd.split(' ');
             const command = args[0].toLowerCase();
-
-            // Check for potential code injection
-            if (cmd.includes('<script') || cmd.includes('javascript:')) {
-                printToTerminal("Nice try! But I won't execute that. 😉");
-                return;
-            }
 
             switch(command) {
                 case 'ls':
@@ -138,6 +132,11 @@
                 case 'clear':
                     terminal.innerHTML = '';
                     break;
+                case 'bruh':
+                    terminal.innerHTML = 'bruh';
+                    break;
+                case 'sudo':
+                    printToTerminal('who dares to wield this power?')
                 case 'help':
                     printToTerminal('Available commands: ls, cd, cat, echo, pwd, clear, help');
                     break;
@@ -179,7 +178,7 @@
         });
 
         updatePrompt();
-        printToTerminal('Hello! Type "help" for available commands.');
+        printToTerminal("Hello! I'm Aaradhya. Webpage is work in progress :) Type help for available commands!");
     </script>
 </body>
 </html>
