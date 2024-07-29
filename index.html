@@ -49,7 +49,23 @@
         .file {
             color: #8ae234;
         }
+        .markdown-output {
+            color: #ffa500; /* Orange color for markdown output */
+        }
+        .markdown-output h1, .markdown-output h2, .markdown-output h3 {
+            margin: 10px 0;
+        }
+        .markdown-output ul, .markdown-output ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .markdown-output code {
+            background-color: #3c3f41;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div id="terminal"></div>
@@ -65,11 +81,11 @@
 
         const fileSystem = {
             '/': {
-                'README': 'Welcome to my little funny spot on the internet',
+                'README.md': { type: 'file', path: 'README.md' },
                 'projects': {
-                    'updates.txt': 'coming soon!',
+                    'updates.md': { type: 'file', path: 'projects/updates.md' },
                 },
-                'contact.txt': 'email: aaradhya.vaze@ist.ac.at'
+                'contact.md': { type: 'file', path: 'contact.md' }
             }
         };
 
@@ -80,19 +96,39 @@
             prompt.textContent = `${currentPath} $ `;
         }
 
-        function printToTerminal(text) {
-            terminal.innerHTML += text + '<br>';
+        function printToTerminal(text, isMarkdown = false) {
+            if (isMarkdown) {
+                const markdownOutput = document.createElement('div');
+                markdownOutput.className = 'markdown-output';
+                markdownOutput.innerHTML = marked.parse(text);
+                terminal.appendChild(markdownOutput);
+            } else {
+                terminal.innerHTML += text + '<br>';
+            }
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        function handleCommand(cmd) {
+        async function fetchFile(path) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.text();
+            } catch (error) {
+                console.error('Error fetching file:', error);
+                return `Error: Could not load file ${path}`;
+            }
+        }
+
+        async function handleCommand(cmd) {
             const args = cmd.split(' ');
             const command = args[0].toLowerCase();
 
             switch(command) {
                 case 'ls':
                     const items = Object.keys(currentDir).map(item => {
-                        if (typeof currentDir[item] === 'object') {
+                        if (typeof currentDir[item] === 'object' && !currentDir[item].type) {
                             return `<span class="directory">${item}/</span>`;
                         } else {
                             return `<span class="file">${item}</span>`;
@@ -109,7 +145,7 @@
                             currentPath = currentPath.split('/').slice(0, -1).join('/') || '/';
                             currentDir = currentPath === '/' ? fileSystem['/'] : fileSystem['/'][currentPath.slice(1)];
                         }
-                    } else if (currentDir[args[1]] && typeof currentDir[args[1]] === 'object') {
+                    } else if (currentDir[args[1]] && typeof currentDir[args[1]] === 'object' && !currentDir[args[1]].type) {
                         currentPath += currentPath === '/' ? args[1] : '/' + args[1];
                         currentDir = currentDir[args[1]];
                     } else {
@@ -117,8 +153,9 @@
                     }
                     break;
                 case 'cat':
-                    if (typeof currentDir[args[1]] === 'string') {
-                        printToTerminal(currentDir[args[1]]);
+                    if (currentDir[args[1]] && currentDir[args[1]].type === 'file') {
+                        const content = await fetchFile(currentDir[args[1]].path);
+                        printToTerminal(content, args[1].endsWith('.md'));
                     } else {
                         printToTerminal(`cat: ${args[1]}: No such file`);
                     }
@@ -133,10 +170,11 @@
                     terminal.innerHTML = '';
                     break;
                 case 'bruh':
-                    terminal.innerHTML = 'bruh';
+                    printToTerminal('bruh');
                     break;
                 case 'sudo':
-                    printToTerminal('who dares to wield this power?')
+                    printToTerminal('who dares to wield this power?');
+                    break;
                 case 'help':
                     printToTerminal('Available commands: ls, cd, cat, echo, pwd, clear, help');
                     break;
