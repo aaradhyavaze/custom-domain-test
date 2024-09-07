@@ -1,6 +1,6 @@
 ## Welcome to my little funny spot of the internet!
 
-Served on aaradhyavaze.com
+Served on [aaradhyavaze.com](www.aaradhyavaze.com)
 
 some things you can do to look around:
 
