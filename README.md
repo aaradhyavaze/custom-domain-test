@@ -1,6 +1,6 @@
 ## Welcome to my little funny spot of the internet!
 
-aaradhyavaze.github.io
+Served on aaradhyavaze.com
 
 some things you can do to look around:
 
