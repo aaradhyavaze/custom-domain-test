@@ -127,6 +127,10 @@
             const command = args[0].toLowerCase();
 
             switch(command) {
+                case 'gwex':
+                    window.location.href = 'aaradhyavaze.com/gwex.html';
+                    break;
+                    
                 case 'ls':
                     const items = Object.keys(currentDir).map(item => {
                         if (typeof currentDir[item] === 'object' && !currentDir[item].type) {
