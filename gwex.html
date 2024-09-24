@@ -3,11 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>bruh</title>
+    <title>City Go Game Prototype</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* Set the map to fill the screen */
+        #map {
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0; /* Map underneath the grid */
+        }
+
+        /* Create a canvas-like grid on top of the map */
+        #gridCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999; /* Ensure grid is on top of everything */
+            pointer-events: none; /* Make grid non-interactive */
+        }
+    </style>
 </head>
 <body>
-    <h1>Go with extra steps</h1>
-    <p>WIP</p>
+
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <!-- Canvas grid overlay -->
+    <canvas id="gridCanvas"></canvas>
+
+    <!-- Leaflet.js for map functionality -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([48.2082, 16.3738], 13); // Centered on Vienna
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Get the canvas element for the grid
+        const gridCanvas = document.getElementById('gridCanvas');
+        const ctx = gridCanvas.getContext('2d');
+
+        // Function to draw the grid with padding and square cells
+        function drawGrid() {
+            const width = gridCanvas.width;
+            const height = gridCanvas.height;
+
+            const padding = 20; // Padding on all sides
+            const numRows = 5;
+            const numCols = 5;
+
+            // Calculate square size based on the smaller dimension (width or height) and available space
+            const availableWidth = width - padding * 2;
+            const availableHeight = height - padding * 2;
+            const squareSize = Math.min(availableWidth / numCols, availableHeight / numRows);
+
+            // Calculate the actual grid size to center it within the canvas
+            const gridWidth = squareSize * numCols;
+            const gridHeight = squareSize * numRows;
+            const xOffset = (width - gridWidth) / 2;
+            const yOffset = (height - gridHeight) / 2;
+
+            // Clear the canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Set grid line style
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)'; // Black with opacity
+            ctx.lineWidth = 3; // Thicker grid lines
+
+            // Draw the grid
+            for (let i = 0; i <= numCols; i++) {
+                let x = xOffset + i * squareSize;
+                ctx.beginPath();
+                ctx.moveTo(x, yOffset);
+                ctx.lineTo(x, yOffset + gridHeight);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= numRows; i++) {
+                let y = yOffset + i * squareSize;
+                ctx.beginPath();
+                ctx.moveTo(xOffset, y);
+                ctx.lineTo(xOffset + gridWidth, y);
+                ctx.stroke();
+            }
+        }
+
+        // Ensure grid resizes with the window
+        function resizeGrid() {
+            gridCanvas.width = window.innerWidth;
+            gridCanvas.height = window.innerHeight;
+            drawGrid();
+        }
+
+        // Initial grid drawing
+        resizeGrid();
+
+        // Redraw the grid when the window is resized
+        window.addEventListener('resize', resizeGrid);
+    </script>
+
 </body>
 </html>
